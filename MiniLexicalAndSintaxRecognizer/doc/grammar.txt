@@ -1,0 +1,28 @@
+<programa>::= algoritmo identificador “;” <bloco> “.”
+<bloco>::= [ <declaracao_de_variaveis> ] <comando_composto>
+<declaracao_de_variaveis> ::= variavel {<lista_variavel> “:” <tipo> “;”}
++
+<lista_variavel> ::= identificador { “,” identificador }
+<tipo> ::= inteiro | logico
+<comando_composto> ::= inicio <comando> { “;” <comando>} fim
+<comando> ::= <comando_atribuicao> |
+<comando_se> |
+<comando_enquanto> |
+<comando_entrada> |
+<comando_saida> |
+<comando_composto>
+<comando_atribuicao> ::= identificador “:=” <expressao>
+<comando_se> ::= se “(” <expressao> “)” entao
+ <comando> [senao <comando>]
+<comando_enquanto> ::= enquanto “(” <expressao> “)” faca <comando>
+<comando_entrada> ::= leia “(“ <lista_variavel> “)”
+<comando_saida> ::= escreva “(“ <expressao> { “,” <expressao> } “)”
+<expressao> ::= <expressao_simples> [<relacional> <expressao_simples> ]
+<relacional> ::= “<” | “<=” | “=” | “#” | “>” | “>=”
+<expressao_simples> ::= [“+” | “−”] <termo> { (“+” | “−” | ou ) <termo> }
+<termo> ::= <fator> { ( “*” | div | e )<fator> }
+<fator> ::= identificador |
+numero |
+verdadeiro |
+falso |
+“(” <expressao> “)”
