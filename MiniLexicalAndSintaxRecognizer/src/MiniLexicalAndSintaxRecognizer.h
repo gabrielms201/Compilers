@@ -23,10 +23,38 @@ typedef enum
 {
     ERRO,
     ID,
-    ALGORITHM,
+    ALGORITMO,
     SEMILICON,
     DOT,
     EOS,
+    VARIAVEL,
+    COLON,
+    INTEIRO,
+    LOGICO,
+    COMMA,
+    INICIO,
+    FIM,
+    SE,
+    ENQUANTO,
+    LEIA,
+    ESCREVA,
+    OPEN_PARENTHESES,
+    CLOSE_PARENTHESES,
+    LESSER,
+    LESSER_EQUAL,
+    EQUAL,
+    MARK,
+    GREATER,
+    GREATER_EQUAL,
+    PLUS_SIGN,
+    MINUS_SIGN,
+    OU,
+    MULT_SIGN,
+    DIV,
+    E,
+    VERDADEIRO,
+    FALSO,
+    NUMBER
 } Token;
 
 typedef struct
@@ -34,7 +62,7 @@ typedef struct
     Token Token;
     int Line;
     float Number;
-    char ID[200];
+    char ID[20];
 } TokenInfo;
 
 typedef struct 
@@ -46,12 +74,25 @@ typedef struct
 TokenInfo GetToken();
 TokenInfo CheckReservedWord();
 TokenInfo CheckID();
+TokenInfo CheckNumber();
 TokenInfo CreateTokenInfo(char* initBuffer, Token token, char* input);
 
 
 // Grammar
-void Program();
-void Block();
-// Sintax
+void Program();         // <programa>
+void Scope();           // <bloco>
+void VarDeclaration();  // <declaracao_de_variaveis>
+void CompoundCommand(); // <comando_composto>
+void VarList();         // <lista_variavel>
+void Type();            // <tipo>
+void Command();         // <comando>
+void Print();           // <escreva>
+void Expression();      // <expressao>
+void SimpleExpression(); // <expressao_simples>
+void Relational();      // <relacional>
+void Term();            // <termo>
+void Factor();           // <fator>
+void Number();           // <numero>
+// Syntax
 void Consume(Token token);
 // ~main.h

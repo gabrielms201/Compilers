@@ -18,12 +18,55 @@ char strToken[][30] =
 	";",
 	".",
 	"FIM DA ANALISE SINTATICA",
+	"VARIAVEL",
+	":",
+	"TIPO",
+	"TIPO",
+	",",
+	"INICIO",
+	"FIM",
+	"SE",
+	"ENQUANTO",
+	"LEIA",
+	"ESCREVA",
+	"(",
+	")",
+	"<",
+	"<=",
+	"=",
+	"#",
+	">",
+	">=",
+	"+",
+	"-",
+	"OU",
+	"*",
+	"DIV",
+	"e",
+	"VERDADEIRO",
+	"FALSO",
+	"NUMERO"
 };
 
 // We can use this KeyValue Array in order to simple storage reserved words and they respective 
 // Token and Content
 ReservedWord reservedWords[][100] = {
-	{"algoritmo", ALGORITHM},
+	{"algoritmo", ALGORITMO},
+	{"variavel", VARIAVEL},
+	{"inteiro", INTEIRO},
+	{"logico", LOGICO},
+	{"inicio", INICIO},
+	{"fim", FIM},
+	{"se", SE},
+	{"enquanto", ENQUANTO},
+	{"leia", LEIA},
+	{"escreva", ESCREVA},
+	{"ou", OU},
+	{"*", MULT_SIGN},
+	{"div", DIV},
+	{"e", E},
+	{"verdadeiro", VERDADEIRO},
+	{"falso", FALSO},
 	{"", ERRO} // To check if we have reached the end of the array
 };
 
@@ -88,7 +131,11 @@ int GetNumberOfCharactersToSkip()
 	int isComment = *g_input == '/' && *(g_input + 1) != '\0' && *(g_input + 1) == '/';
 
 	if (isLineBreak) g_currentLine++;
-	if (isComment) return 2;
+	if (isComment)
+	{
+		printf("%ld: comentario\n", g_currentLine);
+		return 2;
+	}
 	return isLineBreak || isEscape || isTab || isSpace || isComment;
 
 }
@@ -130,7 +177,10 @@ TokenInfo GetToken()
 			info = reservedKeyWordCheck;
 		}
 	}
-	// todo: mudar para um switch case
+	else if (isdigit(*g_input))
+	{
+		info = CheckNumber();
+	}
 	else if (*g_input == ';')
 	{
 		info.Token = SEMILICON;
@@ -141,12 +191,74 @@ TokenInfo GetToken()
 		info.Token = DOT;
 		g_input++;
 	}
+	else if (*g_input == ':')
+	{
+		info.Token = COLON;
+		g_input++;
+	}
+	else if (*g_input == ',')
+	{
+		info.Token = COMMA;
+		g_input++;
+	}
+	else if (*g_input == '(')
+	{
+		info.Token = OPEN_PARENTHESES;
+		g_input++;
+	}
+	else if (*g_input == ')')
+	{
+		info.Token = CLOSE_PARENTHESES;
+		g_input++;
+	}
+
+	else if (*g_input == '<')
+	{
+		info.Token = LESSER;
+		g_input++;
+		if (*g_input == '=')
+		{
+			info.Token = LESSER_EQUAL;
+			g_input++;
+		}
+	}
+	else if (*g_input == '=')
+	{
+		info.Token = EQUAL;
+		g_input++;
+	}
+	else if (*g_input == '#')
+	{
+		info.Token = MARK;
+		g_input++;
+	}
+	else if (*g_input == '>')
+	{
+		info.Token = GREATER;
+		g_input++;
+		if (*g_input == '=')
+		{
+			info.Token = GREATER_EQUAL;
+			g_input++;
+		}
+	}
+	else if (*g_input == '+')
+	{
+		info.Token = PLUS_SIGN;
+		g_input++;
+	}
+	else if (*g_input == '-')
+	{
+		info.Token = MINUS_SIGN;
+		g_input++;
+	}
 	else if (*g_input == '\0')
 		info.Token = EOS;
 	else
 		info.Token = ERRO;
-	
 
+
+	// todo: colocar um log antes de retornar
 	return info;
 
 }
@@ -161,7 +273,50 @@ TokenInfo CreateTokenInfo(char* initBuffer, Token token, char* input)
 	info.Number = atof(info.ID);
 	return info;
 }
-
+TokenInfo CheckNumber()
+{
+	char* initBuffer = g_input;
+	TokenInfo tokenInfo;
+	tokenInfo.Token = ERRO;
+	if (isdigit(*g_input))
+	{
+		g_input++;
+		goto q1;
+	}
+	return tokenInfo;
+q1:
+	if (*g_input == 'E' || *g_input == 'e')
+	{
+		g_input++;
+		if (*g_input == '+' || *g_input == '-')
+		{
+			g_input++;
+		}
+		// since "digito" is a positive clojure, we use while statement to represent the automata
+		if (!isdigit(*g_input))
+		{
+			tokenInfo.Token = ERRO;
+			return tokenInfo;
+		}
+		while (isdigit(*g_input))
+		{
+			g_input++;
+		} 
+	}
+	else if (isdigit(*g_input))
+	{
+		g_input++;
+		goto q1;
+	}
+	else
+	{
+		// if is not a digit or E/e, is not a number
+		tokenInfo.Token = ERRO;
+		return tokenInfo;
+	}
+	tokenInfo = CreateTokenInfo(initBuffer, NUMBER, g_input);
+	return tokenInfo;
+}
 TokenInfo CheckID()
 {
 	char* initBuffer = g_input;
@@ -229,7 +384,7 @@ void Consume(Token token)
 	}
 	else
 	{
-		printf("#%03ld: Erro sintatico: esperado [%s] encontrado [%s]\n", g_currentLine, strToken[token], strToken[lookahead]);
+		printf("#%03ld: Erro sintatico: esperado [%s], encontrado [%s]\n", g_currentLine, strToken[token], strToken[lookahead]);
 		exit(1);
 	}
 }
@@ -237,13 +392,227 @@ void Consume(Token token)
 // Derivations
 void Program()
 {
-	Consume(ALGORITHM);
+	Consume(ALGORITMO);
 	Consume(ID);
 	Consume(SEMILICON);
-	Block();
+	Scope();
 	Consume(DOT);
 }
+void Scope()
+{
+	if (lookahead == VARIAVEL)
+		VarDeclaration();
+	CompoundCommand();
 
+}
+void VarDeclaration()
+{
+	Consume(VARIAVEL);
+	do 
+	{
+		VarList();
+		Consume(COLON);
+		Type();
+		Consume(SEMILICON);
+
+	} while (lookahead == ID);
+}
+void CompoundCommand()
+{
+	Consume(INICIO);
+	Command();
+	while (lookahead == SEMILICON)
+	{
+		Consume(SEMILICON);
+		Command();
+	}
+	Consume(FIM);
+}
+// <comando>
+void Command()
+{
+	// First:
+	//  <comando_atribuicao>		=> ID
+	//	<comando_se>				=> SE
+	//	<comando_enquanto>			=> ENQUANTO
+	//	<comando_entrada>			=> LEIA
+	//	<comando_saida>				=> ESCREVA
+	//	<comando_composto>			=> INICIO
+
+
+	// TODO: Implementar isso td
+	switch (lookahead)
+	{
+	case ID:
+		//todo
+		break;
+	case SE:
+		//todo
+		break;
+	case ENQUANTO:
+		//todo
+		break;
+	case LEIA:
+		//todo
+		break;
+	case ESCREVA:
+		Print();
+		break;
+	case INICIO:
+		CompoundCommand();
+		break;
+	default:
+		printf("#%03ld: Erro: esperado comando, encontrado [%s]\n", g_currentLine, strToken[lookahead]);
+		exit(1);
+		break;
+	}
+}
+// <escreva>
+void Print() 
+{
+	Consume(ESCREVA);
+	Consume(OPEN_PARENTHESES);
+	Expression();
+	while (lookahead == COMMA)
+	{
+		Consume(COMMA);
+		Expression();
+	}
+	Consume(CLOSE_PARENTHESES);
+}
+// <expressao>
+void Expression() 
+{
+	SimpleExpression();
+	if (lookahead == LESSER || lookahead == LESSER_EQUAL ||
+		lookahead == EQUAL || lookahead == MARK || 
+		lookahead == GREATER || lookahead == GREATER_EQUAL)
+	{
+		Relational();
+		SimpleExpression();
+	}
+}
+// <relacional>
+void Relational()
+{
+	if (lookahead == LESSER)
+		Consume(LESSER);
+	else if (lookahead == LESSER_EQUAL)
+		Consume(LESSER_EQUAL);
+	else if (lookahead == MARK)
+		Consume(MARK);
+	else if (lookahead == EQUAL)
+		Consume(EQUAL);
+	else if (lookahead == GREATER)
+		Consume(GREATER);
+	else if (lookahead == GREATER_EQUAL)
+		Consume(GREATER_EQUAL);
+	else
+	{
+		printf("#%03ld: Erro: esperado relacional, encontrado [%s]\n", g_currentLine, strToken[lookahead]);
+		exit(1);
+	}
+}
+// <expressao_simples>
+void SimpleExpression()
+{
+	// todo: confirmar que ta tudo ok
+	if (lookahead == PLUS_SIGN)
+		Consume(PLUS_SIGN);
+	else if (lookahead == MINUS_SIGN)
+		Consume(MINUS_SIGN);
+
+	Term();
+	while (lookahead == PLUS_SIGN || lookahead == MINUS_SIGN || lookahead == OU)
+	{
+		if (lookahead == PLUS_SIGN)
+			Consume(PLUS_SIGN);
+		else if (lookahead == MINUS_SIGN)
+			Consume(MINUS_SIGN);
+		else if (lookahead == OU)
+			Consume(OU);
+		else
+		{
+			printf("#%03ld: Erro: esperado +,-, ou , encontrado [%s]\n", g_currentLine, strToken[lookahead]);
+			exit(1);
+		}
+		Term();
+	}
+}
+// <termo>
+void Term()
+{
+	Factor();
+	while (lookahead == MULT_SIGN || lookahead == DIV || lookahead == E)
+	{
+		if (lookahead == MULT_SIGN)
+		{
+			Consume(MULT_SIGN);
+		}
+		else if (lookahead == DIV)
+		{
+			Consume(DIV);
+		}
+		else if (lookahead == E)
+		{
+			Consume(E);
+		}
+		else
+		{
+			printf("#%03ld: Erro: esperado *,div, e, encontrado [%s]\n", g_currentLine, strToken[lookahead]);
+			exit(1);
+		}
+		Factor();
+	}
+}
+// <fator>
+void Factor()
+{
+	if (lookahead == ID)
+	{
+		Consume(ID);
+	}
+
+	else if (lookahead == VERDADEIRO)
+	{
+		Consume(VERDADEIRO);
+	}
+	else if (lookahead == FALSO)
+	{
+		Consume(FALSO);
+	}
+	else if (lookahead == OPEN_PARENTHESES)
+	{
+		Consume(OPEN_PARENTHESES);
+		Expression();
+		Consume(CLOSE_PARENTHESES);
+	}
+	else
+	{
+		Consume(NUMBER);
+	}
+
+}
+// <lista_variavel>
+void VarList() 
+{
+	Consume(ID);
+	while (lookahead == COMMA)
+	{
+		Consume(COMMA);
+		Consume(ID);
+	}
+}
+// <tipo>
+void Type()
+{
+	if (lookahead == INTEIRO)
+		Consume(INTEIRO);
+	else
+		Consume(LOGICO);
+}
+
+// End Derivations
 
 
 void StartAnalyzing()

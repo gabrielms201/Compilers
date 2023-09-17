@@ -1,0 +1,4 @@
+algoritmo ID  ;
+inicio
+    escreva("teste")
+fim.
