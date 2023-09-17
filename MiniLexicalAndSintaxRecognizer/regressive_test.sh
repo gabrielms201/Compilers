@@ -27,7 +27,7 @@ do
     OUTPUT=$("$EXECUTAVEL" "$ARQUIVO" 2>$OUT_DIR )
       # Executa o programa "reconhecedor.exe" com o argumento do caminho desse arquivo
       # Verifica se a string "Palavra reconhecida" foi printada no console
-      if echo "$OUTPUT" | grep -q "Palavra reconhecida"; then
+      if echo "$OUTPUT" | grep -q " programa sintaticamente correto"; then
         if [[ "$ARQUIVO" == *"FAIL"* ]]; then
           ERRO=1
           echo -e "${VERMELHO}~ [ERROR] O arquivo $ARQUIVO passou, mas não era esperado. ${RESET}"

@@ -18,17 +18,40 @@ FILE* OpenFileAndCheck(const char* fileName);
 int GetNumberOfCharactersToSkip();
 void NextTerminal();
 
-// Derivacoes
-void Expressao();
-void Variavel();
-void Declaracao();
-void Digito();
-void Declaracoes();
-void Atribuicao();
-void Comandos();
-void Programa();
-void Termo();
-void Fator();
-void Numero();
-void StartRecognizer();
+// Lexical Analyzer
+typedef enum
+{
+    ERRO,
+    ID,
+    ALGORITHM,
+    SEMILICON,
+    DOT,
+    EOS,
+} Token;
+
+typedef struct
+{
+    Token Token;
+    int Line;
+    float Number;
+    char ID[200];
+} TokenInfo;
+
+typedef struct 
+{
+    char* content;
+    Token token;
+} ReservedWord;
+
+TokenInfo GetToken();
+TokenInfo CheckReservedWord();
+TokenInfo CheckID();
+TokenInfo CreateTokenInfo(char* initBuffer, Token token, char* input);
+
+
+// Grammar
+void Program();
+void Block();
+// Sintax
+void Consume(Token token);
 // ~main.h
