@@ -168,6 +168,7 @@ TokenInfo GetToken()
 {
 	NextTerminal();
 	TokenInfo info;
+	// First we need to check if we can fit a word
 	if (isalpha(*g_input))
 	{
 		info = CheckID();
@@ -177,10 +178,12 @@ TokenInfo GetToken()
 			info = reservedKeyWordCheck;
 		}
 	}
+	// Then we check if we can fit a number
 	else if (isdigit(*g_input))
 	{
 		info = CheckNumber();
 	}
+	// otherwise, we check for the other atoms
 	else if (*g_input == ';')
 	{
 		info.Token = SEMILICON;
@@ -285,6 +288,7 @@ TokenInfo CheckNumber()
 	}
 	return tokenInfo;
 q1:
+	// If we have an "e", then we finish checking the digit and check the expoent
 	if (*g_input == 'E' || *g_input == 'e')
 	{
 		g_input++;
@@ -292,28 +296,32 @@ q1:
 		{
 			g_input++;
 		}
-		// since "digito" is a positive clojure, we use while statement to represent the automata
+		
 		if (!isdigit(*g_input))
 		{
 			tokenInfo.Token = ERRO;
 			return tokenInfo;
 		}
+		// since "digito" is a positive clojure, we use while statement to represent the automata
 		while (isdigit(*g_input))
 		{
 			g_input++;
 		} 
 	}
+	// if is a digit, we continue til we have an "E" or empty
 	else if (isdigit(*g_input))
 	{
 		g_input++;
 		goto q1;
 	}
-	else
-	{
-		// if is not a digit or E/e, is not a number
-		tokenInfo.Token = ERRO;
-		return tokenInfo;
-	}
+	// TODO: Checar se posso apagar esse comentrio
+	// 
+	//else
+	//{
+	//	// if is not a digit or E/e, is not a number
+	//	tokenInfo.Token = ERRO;
+	//	return tokenInfo;
+	//}
 	tokenInfo = CreateTokenInfo(initBuffer, NUMBER, g_input);
 	return tokenInfo;
 }
@@ -331,7 +339,7 @@ TokenInfo CheckID()
 		
 	return tokenInfo;
 q1:
-	if (isalpha(*g_input) || isdigit(*g_input) || *g_input == '-')
+	if (isalpha(*g_input) || isdigit(*g_input) || *g_input == '_')
 	{
 		g_input++; count++;
 		goto q1;
@@ -438,7 +446,9 @@ void Command()
 	//	<comando_entrada>			=> LEIA
 	//	<comando_saida>				=> ESCREVA
 	//	<comando_composto>			=> INICIO
+	
 
+	// TODO: Verificar regra do vazio no first
 
 	// TODO: Implementar isso td
 	switch (lookahead)

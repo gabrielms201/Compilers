@@ -2,6 +2,6 @@ algoritmo ID  ;
     variavel numero:inteiro;
 
 inicio
-	escreva(123e+1);escreva(teste)
-fim
-.
+	escreva(123);
+	escreva(teste)
+fim.
