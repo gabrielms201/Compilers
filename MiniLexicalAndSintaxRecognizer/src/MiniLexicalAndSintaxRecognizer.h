@@ -14,10 +14,6 @@ char* PutFileContentIntoString(FILE* fp, long charCount);
 FILE* OpenFileAndCheck(const char* fileName);
 
 
-// Conditions to Skip ( \n - \t - \r - \\ - " " )
-int GetNumberOfCharactersToSkip();
-void NextTerminal();
-
 // Lexical Analyzer
 typedef enum
 {
@@ -54,7 +50,13 @@ typedef enum
     E,
     VERDADEIRO,
     FALSO,
-    NUMBER
+    NUMBER,
+    ASSIGN_SIGN,
+    FACA,
+    COMMENTARY,
+    MULTI_COMMENTARY,
+    ENTAO,
+    SENAO
 } Token;
 
 typedef struct
@@ -70,6 +72,11 @@ typedef struct
     char* content;
     Token token;
 } ReservedWord;
+
+
+// Conditions to Skip ( \n - \t - \r - \\ - " " )
+int ShouldSkipOneChar();
+TokenInfo NextTerminal();
 
 TokenInfo GetToken();
 TokenInfo CheckReservedWord();
@@ -92,7 +99,10 @@ void SimpleExpression(); // <expressao_simples>
 void Relational();      // <relacional>
 void Term();            // <termo>
 void Factor();           // <fator>
-void Number();           // <numero>
+void Input();           // <comando_entrada>
+void Assignment();      // <comando_atribuicao>
+void While();           // <comando_enquanto>
+void If();              // <comando_se>
 // Syntax
 void Consume(Token token);
 // ~main.h

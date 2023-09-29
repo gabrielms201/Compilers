@@ -1,0 +1,12 @@
+algoritmo ID  ;
+    variavel numero:inteiro;
+// test
+inicio
+	escreva(123);
+	test := -2e-123;
+	escreva(teste);
+	escreva(aqui);
+	leia(teste,teste2);
+	escreva(123)
+
+fim.

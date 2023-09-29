@@ -12,6 +12,7 @@ Token lookahead;
 const int MAX_ID_LENGTH = 15;
 char strToken[][30] =
 {
+	// todo: rever index
 	"ERRO LEXICO",
 	"IDENTIFICADOR",
 	"ALGORITMO",
@@ -45,12 +46,19 @@ char strToken[][30] =
 	"e",
 	"VERDADEIRO",
 	"FALSO",
-	"NUMERO"
+	"NUMERO",
+	":=",
+	"FACA",
+	"COMENTARIO",
+	"COMENTARIO MULTILINHA",
+	"ENTAO",
+	"SENAO"
 };
 
 // We can use this KeyValue Array in order to simple storage reserved words and they respective 
 // Token and Content
 ReservedWord reservedWords[][100] = {
+	// todo: verificar isso. Pq ta com um mult sign aqui
 	{"algoritmo", ALGORITMO},
 	{"variavel", VARIAVEL},
 	{"inteiro", INTEIRO},
@@ -62,11 +70,14 @@ ReservedWord reservedWords[][100] = {
 	{"leia", LEIA},
 	{"escreva", ESCREVA},
 	{"ou", OU},
-	{"*", MULT_SIGN},
+	/*{"*", MULT_SIGN},*/
 	{"div", DIV},
 	{"e", E},
 	{"verdadeiro", VERDADEIRO},
 	{"falso", FALSO},
+	{"faca", FACA},
+	{"entao", ENTAO},
+	{"senao", SENAO},
 	{"", ERRO} // To check if we have reached the end of the array
 };
 
@@ -122,52 +133,79 @@ FILE* OpenFileAndCheck(const char* fileName)
 /// Returns the number of characters to skip
 /// </summary>
 /// <returns>Number of characters we should skip</returns>
-int GetNumberOfCharactersToSkip()
+int ShouldSkipOneChar()
 {
 	int isLineBreak = *g_input == '\n';
 	int isEscape = *g_input == '\r';
 	int isTab = *g_input == '\t';
 	int isSpace = *g_input == ' ';
-	int isComment = *g_input == '/' && *(g_input + 1) != '\0' && *(g_input + 1) == '/';
 
 	if (isLineBreak) g_currentLine++;
-	if (isComment)
-	{
-		printf("%ld: comentario\n", g_currentLine);
-		return 2;
-	}
-	return isLineBreak || isEscape || isTab || isSpace || isComment;
-
+	return isLineBreak || isEscape || isTab || isSpace;
 }
+
 
 /// <summary>
 /// Goes to the next terminal given certain conditions
 /// </summary>
-void NextTerminal()
+TokenInfo NextTerminal()
 {
-	int numberOfCharactersToSkip = GetNumberOfCharactersToSkip();
-	while (numberOfCharactersToSkip)
+	TokenInfo info;
+	info.Token = ERRO;
+	
+	int shouldSkip = ShouldSkipOneChar();
+	while (shouldSkip)
 	{
-#ifdef LOG_DEBUG
-		printf("~> [DEBUG] JUMPING CHARACTER: [%c]\n", *g_input);
-		printf("\t\t Current Value: {%s}\n", g_input);
-#endif
-		g_input += numberOfCharactersToSkip;
-		if (numberOfCharactersToSkip == 2)
-		{
-			while (*g_input != '\n' && *g_input != '\0')
-			{
-				g_input++;
-			}
-		}
-		numberOfCharactersToSkip = GetNumberOfCharactersToSkip();
+		g_input++;
+		shouldSkip = ShouldSkipOneChar();
 	}
+	int currentLine = g_currentLine;
+
+	int isMultiCommentary = *g_input == '/' && *(g_input + 1) != '\0' && *(g_input + 1) == '*';
+	if (isMultiCommentary)
+	{
+		int finishedCommentary = (*g_input == '*' && *(g_input + 1) != '\0' && *(g_input + 1) == '/');
+		while (!finishedCommentary)
+		{
+			if (*g_input == '\0')
+			{
+				info.Token = ERRO;
+				return info;
+			}
+			info.Token = MULTI_COMMENTARY;
+			g_input++;
+			finishedCommentary = (*g_input == '*' && *(g_input + 1) != '\0' && *(g_input + 1) == '/');
+			if (*g_input == '\n') g_currentLine++;
+		}
+		g_input+=2;
+	}
+	int isCommentary = *g_input == '/' && *(g_input + 1) != '\0' && *(g_input + 1) == '/';
+	if (isCommentary)
+	{
+		g_input += 2;
+		while (*g_input != '\n' && *g_input != '\0')
+		{
+			g_input++;
+		}
+		info.Token = COMMENTARY;
+	}
+
+
+	info.Line = currentLine;
+	return info;
 }
 
 TokenInfo GetToken()
 {
-	NextTerminal();
-	TokenInfo info;
+	TokenInfo info = NextTerminal();
+
+	if (info.Token == COMMENTARY || info.Token == MULTI_COMMENTARY)
+	{
+		printf("# Linha %d: %s\n", info.Line, strToken[info.Token]);
+		return info;
+	}
+
+
 	// First we need to check if we can fit a word
 	if (isalpha(*g_input))
 	{
@@ -198,6 +236,11 @@ TokenInfo GetToken()
 	{
 		info.Token = COLON;
 		g_input++;
+		if (*g_input == '=')
+		{
+			info.Token = ASSIGN_SIGN;
+			g_input++;
+		}
 	}
 	else if (*g_input == ',')
 	{
@@ -257,11 +300,19 @@ TokenInfo GetToken()
 	}
 	else if (*g_input == '\0')
 		info.Token = EOS;
-	else
-		info.Token = ERRO;
 
-
-	// todo: colocar um log antes de retornar
+	if (info.Token == ID)
+	{
+		printf("# Linha %d: %s - atributo : %s\n", info.Line, strToken[info.Token], info.ID);
+	}
+	else if (info.Token == NUMBER)
+	{
+		printf("# Linha %d: %s - valor : %f\n", info.Line, strToken[info.Token], info.Number);
+	}
+	else if (info.Token != EOS)
+	{
+		printf("# Linha %d: %s\n", info.Line, strToken[info.Token]);
+	}
 	return info;
 
 }
@@ -281,6 +332,7 @@ TokenInfo CheckNumber()
 	char* initBuffer = g_input;
 	TokenInfo tokenInfo;
 	tokenInfo.Token = ERRO;
+	tokenInfo.Line = g_currentLine;
 	if (isdigit(*g_input))
 	{
 		g_input++;
@@ -329,6 +381,7 @@ TokenInfo CheckID()
 {
 	char* initBuffer = g_input;
     TokenInfo tokenInfo;
+	tokenInfo.Line = g_currentLine;
 	tokenInfo.Token = ERRO;
 	int count = 0;
 	if (isalpha(*g_input))
@@ -384,11 +437,22 @@ TokenInfo CheckReservedWord(char* originalId)
 // Syntax Analyzer
 void Consume(Token token)
 {
-	TokenInfo tokenInfo;
+	// Caso seja um comentario, vamos apenas para o proximo token
+	while (lookahead == COMMENTARY || lookahead == MULTI_COMMENTARY)
+	{
+		TokenInfo tokenInfo = GetToken();
+		lookahead = tokenInfo.Token;
+	}
 	if (lookahead == token)
 	{
 		TokenInfo tokenInfo = GetToken();
 		lookahead = tokenInfo.Token;
+		// Se o proximo lookahead for comentario, apenas pulamos
+		while (lookahead == COMMENTARY || lookahead == MULTI_COMMENTARY)
+		{
+			TokenInfo tokenInfo = GetToken();
+			lookahead = tokenInfo.Token;
+		}
 	}
 	else
 	{
@@ -454,16 +518,19 @@ void Command()
 	switch (lookahead)
 	{
 	case ID:
-		//todo
+		// todo: revisar
+		Assignment();
 		break;
 	case SE:
-		//todo
+		// TODO: TESTAR
+		If();
 		break;
 	case ENQUANTO:
-		//todo
+		// TODO: TESTAR
+		While();
 		break;
 	case LEIA:
-		//todo
+		Input();
 		break;
 	case ESCREVA:
 		Print();
@@ -477,7 +544,47 @@ void Command()
 		break;
 	}
 }
-// <escreva>
+// <comando_se>
+void If()
+{
+	Consume(SE);
+	Consume(OPEN_PARENTHESES);
+	Expression();
+	Consume(CLOSE_PARENTHESES);
+	Consume(ENTAO);
+	Command();
+	if (lookahead == SENAO)
+	{
+		Consume(SENAO);
+		Command();
+	}
+}
+// <comando_atribuicao>
+void While()
+{
+	Consume(ENQUANTO);
+	Consume(OPEN_PARENTHESES);
+	Expression();
+	Consume(CLOSE_PARENTHESES);
+	Consume(FACA);
+	Command();
+}
+// <comando_entrada>
+void Input()
+{
+	Consume(LEIA);
+	Consume(OPEN_PARENTHESES);
+	VarList();
+	Consume(CLOSE_PARENTHESES);
+}
+// <comando_atribuicao>
+void Assignment()
+{
+	Consume(ID);
+	Consume(ASSIGN_SIGN);
+	Expression();
+}
+// <comando_saida>
 void Print() 
 {
 	Consume(ESCREVA);
@@ -639,6 +746,7 @@ void StartAnalyzing()
 
 	// Finishes
 	Consume(EOS);
+	//todo: da pra comentar isso, nao da?
 	if (g_input != NULL && *g_input == '\0')
 	{
 		printf("%ld linhas analisadas, programa sintaticamente correto!\n", g_currentLine);
