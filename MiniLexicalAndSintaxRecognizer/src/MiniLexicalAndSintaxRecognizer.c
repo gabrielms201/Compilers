@@ -12,7 +12,6 @@ Token lookahead;
 const int MAX_ID_LENGTH = 15;
 char strToken[][30] =
 {
-	// todo: rever index
 	"ERRO LEXICO",
 	"IDENTIFICADOR",
 	"ALGORITMO",
@@ -58,7 +57,6 @@ char strToken[][30] =
 // We can use this KeyValue Array in order to simple storage reserved words and they respective 
 // Token and Content
 ReservedWord reservedWords[][100] = {
-	// todo: verificar isso. Pq ta com um mult sign aqui
 	{"algoritmo", ALGORITMO},
 	{"variavel", VARIAVEL},
 	{"inteiro", INTEIRO},
@@ -70,7 +68,6 @@ ReservedWord reservedWords[][100] = {
 	{"leia", LEIA},
 	{"escreva", ESCREVA},
 	{"ou", OU},
-	/*{"*", MULT_SIGN},*/
 	{"div", DIV},
 	{"e", E},
 	{"verdadeiro", VERDADEIRO},
@@ -298,6 +295,11 @@ TokenInfo GetToken()
 		info.Token = MINUS_SIGN;
 		g_input++;
 	}
+	else if (*g_input == '*')
+	{
+		info.Token = MULT_SIGN;
+		g_input++;
+	}
 	else if (*g_input == '\0')
 		info.Token = EOS;
 
@@ -366,14 +368,6 @@ q1:
 		g_input++;
 		goto q1;
 	}
-	// TODO: Checar se posso apagar esse comentrio
-	// 
-	//else
-	//{
-	//	// if is not a digit or E/e, is not a number
-	//	tokenInfo.Token = ERRO;
-	//	return tokenInfo;
-	//}
 	tokenInfo = CreateTokenInfo(initBuffer, NUMBER, g_input);
 	return tokenInfo;
 }
@@ -511,18 +505,12 @@ void Command()
 	//	<comando_saida>				=> ESCREVA
 	//	<comando_composto>			=> INICIO
 	
-
-	// TODO: Verificar regra do vazio no first
-
-	// TODO: Implementar isso td
 	switch (lookahead)
 	{
 	case ID:
-		// todo: revisar
 		Assignment();
 		break;
 	case SE:
-		// TODO: TESTAR
 		If();
 		break;
 	case ENQUANTO:
@@ -746,7 +734,6 @@ void StartAnalyzing()
 
 	// Finishes
 	Consume(EOS);
-	//todo: da pra comentar isso, nao da?
 	if (g_input != NULL && *g_input == '\0')
 	{
 		printf("%ld linhas analisadas, programa sintaticamente correto!\n", g_currentLine);
