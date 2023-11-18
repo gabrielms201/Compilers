@@ -667,6 +667,7 @@ void SimpleExpression()
 	Term();
 	while (lookahead == PLUS_SIGN || lookahead == MINUS_SIGN || lookahead == OU)
 	{
+		Token op = lookahead;
 		if (lookahead == PLUS_SIGN)
 			Consume(PLUS_SIGN);
 		else if (lookahead == MINUS_SIGN)
@@ -679,6 +680,14 @@ void SimpleExpression()
 			exit(1);
 		}
 		Term();
+		if (op == PLUS_SIGN)
+		{
+			printf("\tSOMA\n");
+		}
+		else if (op == MINUS_SIGN)
+		{
+			printf("\tSUBT\n");
+		}
 	}
 }
 // <termo>
