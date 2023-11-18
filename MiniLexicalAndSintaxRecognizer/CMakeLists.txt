@@ -5,4 +5,6 @@ set(CMAKE_C_STANDARD 11)
 
 add_executable(MiniLexicalAndSintaxRecognizer
 	src/MiniLexicalAndSintaxRecognizer.c 
-	src/MiniLexicalAndSintaxRecognizer.h)
+	src/MiniLexicalAndSintaxRecognizer.h
+	src/LinkedList.c
+	src/LinkedList.h)

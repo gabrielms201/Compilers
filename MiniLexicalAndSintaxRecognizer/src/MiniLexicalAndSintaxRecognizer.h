@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <ctype.h> 
 #include <string.h>
+#include "LinkedList.h"
 
 // Utils
 void Error();

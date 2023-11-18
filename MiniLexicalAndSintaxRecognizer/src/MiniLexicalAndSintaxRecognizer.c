@@ -740,8 +740,6 @@ void StartAnalyzing()
 	}
 }
 
-
-
 int main(int argc, char** argv)
 {
 	// We can take the file from the command line arguments
