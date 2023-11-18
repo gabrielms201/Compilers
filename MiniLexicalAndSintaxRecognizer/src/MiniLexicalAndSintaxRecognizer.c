@@ -14,7 +14,13 @@ Node* g_symbolTable = NULL;
 Token lookahead;
 const int MAX_ID_LENGTH = 15;
 
+
+// Semantic
+int g_currentLabel = 0;
 int g_varDeclaration = 0;
+TokenInfo g_tokenInfo;
+
+
 char strToken[][30] =
 {
 	"ERRO LEXICO",
@@ -431,6 +437,23 @@ TokenInfo CheckReservedWord(char* originalId)
 	return none;
 }
 
+
+// Semantic Analyzer
+int SearchAddress(TokenInfo token)
+{
+	Node* node = Find(g_symbolTable, token.ID);
+	if (node == NULL)
+	{
+		printf("ERRO SEMANTICO: Variavel %s nao declarada\n", token.ID);
+		exit(1);
+	}
+	int address = node->data.Address;
+	return address;
+}
+int NextLabel()
+{
+	return g_currentLabel++;
+}
 // Syntax Analyzer
 void Consume(Token token)
 {
@@ -445,6 +468,7 @@ void Consume(Token token)
 
 		TokenInfo tokenInfo = GetToken();
 		lookahead = tokenInfo.Token;
+		g_tokenInfo = tokenInfo;
 		// Se o proximo lookahead for comentario, apenas pulamos
 		while (lookahead == COMMENTARY || lookahead == MULTI_COMMENTARY)
 		{
@@ -465,6 +489,7 @@ void Program()
 	Consume(ALGORITMO);
 	Consume(ID);
 	Consume(SEMILICON);
+	printf("L%d:\tNADA\n", NextLabel());
 	Scope();
 	Consume(DOT);
 }
@@ -556,12 +581,18 @@ void If()
 // <comando_atribuicao>
 void While()
 {
+	int l1 = NextLabel();
+	int l2 = NextLabel();
 	Consume(ENQUANTO);
+	printf("L%d:\tNADA\n", l1);
 	Consume(OPEN_PARENTHESES);
 	Expression();
 	Consume(CLOSE_PARENTHESES);
+	printf("\tDSVF L%d\n", l2);
 	Consume(FACA);
 	Command();
+	printf("\tDSVS L%d\n", l1);
+	printf("L%d:\tNADA\n", l2);
 }
 // <comando_entrada>
 void Input()
@@ -656,6 +687,7 @@ void Term()
 	Factor();
 	while (lookahead == MULT_SIGN || lookahead == DIV || lookahead == E)
 	{
+		Token op = lookahead;
 		if (lookahead == MULT_SIGN)
 		{
 			Consume(MULT_SIGN);
@@ -674,6 +706,14 @@ void Term()
 			exit(1);
 		}
 		Factor();
+		if (op == MULT_SIGN)
+		{
+			printf("\tMULT\n");
+		}
+		else if (op == DIV)
+		{
+			printf("\tDIVI\n");
+		}
 	}
 }
 // <fator>
@@ -681,26 +721,20 @@ void Factor()
 {
 	if (lookahead == ID)
 	{
+		int address = SearchAddress(g_tokenInfo);
+		printf("\tCRVL %d\n", address);
 		Consume(ID);
 	}
-
-	else if (lookahead == VERDADEIRO)
+	else if (lookahead == NUMBER)
 	{
-		Consume(VERDADEIRO);
+		printf("\tCRCT %d\n", g_tokenInfo.Number);
+		Consume(NUMBER);
 	}
-	else if (lookahead == FALSO)
-	{
-		Consume(FALSO);
-	}
-	else if (lookahead == OPEN_PARENTHESES)
+	else
 	{
 		Consume(OPEN_PARENTHESES);
 		Expression();
 		Consume(CLOSE_PARENTHESES);
-	}
-	else
-	{
-		Consume(NUMBER);
 	}
 
 }
@@ -727,7 +761,7 @@ void Type()
 // End Derivations
 
 
-void StartAnalyzing()
+void Compile()
 {
 	if (g_input == NULL)
 	{
@@ -743,7 +777,7 @@ void StartAnalyzing()
 	Consume(EOS);
 	if (g_input != NULL && *g_input == '\0')
 	{
-		printf("%ld linhas analisadas, programa sintaticamente correto!\n", g_currentLine);
+		printf("\n\n%ld linhas analisadas, programa sintaticamente correto!\n", g_currentLine);
 	}
 }
 
@@ -762,10 +796,13 @@ int main(int argc, char** argv)
 	// storage a reference to the beggining of the input, otherwise, we can't free this memory block
 	char* originalInputPointer = g_input;
 
-	// Start Recognizing
-	StartAnalyzing();
 
-	printf("Lista de simbolos\n\n");
+	printf("Conteudo da compilacao: \n");
+	// Start Recognizing
+	Compile();
+
+	// Print Symbol Table
+	printf("\n///\nLista de simbolos\n\n");
 	PrintList(&g_symbolTable);
 
 

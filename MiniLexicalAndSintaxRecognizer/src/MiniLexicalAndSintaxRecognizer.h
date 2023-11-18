@@ -63,7 +63,7 @@ typedef struct
 {
     Token Token;
     int Line;
-    float Number;
+    int Number;
     char ID[20];
     int Address;
 } TokenInfo;
@@ -107,4 +107,9 @@ void While();           // <comando_enquanto>
 void If();              // <comando_se>
 // Syntax
 void Consume(Token token);
+int SearchAddress(TokenInfo token);
+
+
+// Semantic
+int NextLabel();
 // ~main.h
