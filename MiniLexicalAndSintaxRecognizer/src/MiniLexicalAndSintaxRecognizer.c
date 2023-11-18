@@ -9,7 +9,7 @@
 char* g_input = NULL;
 long g_charCount = 0;
 long g_currentLine = 1;
-unsigned int g_address = 0;
+unsigned int g_address = -1;
 Node* g_symbolTable = NULL;
 Token lookahead;
 const int MAX_ID_LENGTH = 15;
@@ -497,9 +497,11 @@ void Program()
 	Consume(ALGORITMO);
 	Consume(ID);
 	Consume(SEMILICON);
-	printf("L%d:\tINPP\n", NextLabel());
+	NextLabel();
+	printf("\tINPP\n");
 	Scope();
 	Consume(DOT);
+	printf("\tPARA\n");
 }
 void Scope()
 {
@@ -533,7 +535,6 @@ void CompoundCommand()
 		Command();
 	}
 	Consume(FIM);
-	printf("\tPARA\n");
 }
 // <comando>
 void Command()
@@ -617,9 +618,11 @@ void Input()
 // <comando_atribuicao>
 void Assignment()
 {
+	int address = SearchAddress(g_tokenInfo);
 	Consume(ID);
 	Consume(ASSIGN_SIGN);
 	Expression();
+	printf("\tARMZ %d\n", address);
 }
 // <comando_saida>
 void Print() 
@@ -644,8 +647,33 @@ void Expression()
 		lookahead == EQUAL || lookahead == MARK || 
 		lookahead == GREATER || lookahead == GREATER_EQUAL)
 	{
+		Token op = lookahead;
 		Relational();
 		SimpleExpression();
+
+		switch (op)
+		{
+			case LESSER_EQUAL:
+				printf("\tCMEG\n");
+				break;
+			case LESSER:
+				printf("\tCMME\n");
+				break;
+			case EQUAL:
+				printf("\tCMIG\n");
+				break;
+			case MARK:
+				printf("\tCMDG\n");
+				break;
+			case GREATER:
+				printf("\tCMMA\n");
+				break;
+			case GREATER_EQUAL:
+				printf("\tCMAG\n");
+				break;
+			default:
+				break;
+		}
 	}
 }
 // <relacional>
@@ -672,7 +700,6 @@ void Relational()
 // <expressao_simples>
 void SimpleExpression()
 {
-	// todo: confirmar que ta tudo ok
 	if (lookahead == PLUS_SIGN)
 		Consume(PLUS_SIGN);
 	else if (lookahead == MINUS_SIGN)
@@ -701,6 +728,10 @@ void SimpleExpression()
 		else if (op == MINUS_SIGN)
 		{
 			printf("\tSUBT\n");
+		}
+		else if (op == OU)
+		{
+			printf("\tDISJ\n");
 		}
 	}
 }
@@ -835,7 +866,7 @@ int main(int argc, char** argv)
 	char* originalInputPointer = g_input;
 
 
-	printf("Codigo MEPA: \n");
+	printf("Codigo MEPA: \n\n");
 	// Start Compiling
 	Compile();
 
