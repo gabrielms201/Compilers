@@ -489,7 +489,7 @@ void Program()
 	Consume(ALGORITMO);
 	Consume(ID);
 	Consume(SEMILICON);
-	printf("L%d:\tNADA\n", NextLabel());
+	printf("L%d:\tINPP\n", NextLabel());
 	Scope();
 	Consume(DOT);
 }
