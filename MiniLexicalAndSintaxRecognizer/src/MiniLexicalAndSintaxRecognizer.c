@@ -18,6 +18,7 @@ const int MAX_ID_LENGTH = 15;
 // Semantic
 int g_currentLabel = 0;
 int g_varDeclaration = 0;
+int g_varReading = 0;
 TokenInfo g_tokenInfo;
 
 
@@ -221,6 +222,13 @@ TokenInfo GetToken()
 		{
 			info = reservedKeyWordCheck;
 		}
+		else
+		{
+			// Here, we are assigning the address if it's an identifier
+			// In this case, we have two ocasions where we can assign the address:
+			// Algorithm declaration (functions) and variable declaration
+			info.Address = g_address++;
+		}
 	}
 	// Then we check if we can fit a number
 	else if (isdigit(*g_input))
@@ -314,6 +322,7 @@ TokenInfo GetToken()
 
 	if (info.Token == ID && g_varDeclaration)
 	{
+		// Here, we store the variable in our symbol table (we are only storing variables)
 		Node* declaredTokenNode = Find(g_symbolTable, info.ID);
 		if (declaredTokenNode != NULL)
 		{
@@ -334,8 +343,7 @@ TokenInfo CreateTokenInfo(char* initBuffer, Token token, char* input)
 	strncpy(info.ID, initBuffer, input - initBuffer);
 	info.ID[input - initBuffer] = '\x0';
 	info.Number = atof(info.ID);
-	info.Address = g_address++;
-	
+	info.Address = -1;
 	return info;
 }
 TokenInfo CheckNumber()
@@ -457,7 +465,7 @@ int NextLabel()
 // Syntax Analyzer
 void Consume(Token token)
 {
-	// Caso seja um comentario, vamos apenas para o proximo token
+	// If we have a commentary, we just skip it
 	while (lookahead == COMMENTARY || lookahead == MULTI_COMMENTARY)
 	{
 		TokenInfo tokenInfo = GetToken();
@@ -469,7 +477,7 @@ void Consume(Token token)
 		TokenInfo tokenInfo = GetToken();
 		lookahead = tokenInfo.Token;
 		g_tokenInfo = tokenInfo;
-		// Se o proximo lookahead for comentario, apenas pulamos
+		// If the next lookahead is a commentary, we just skip it
 		while (lookahead == COMMENTARY || lookahead == MULTI_COMMENTARY)
 		{
 			TokenInfo tokenInfo = GetToken();
@@ -517,6 +525,7 @@ void VarDeclaration()
 void CompoundCommand()
 {
 	Consume(INICIO);
+
 	Command();
 	while (lookahead == SEMILICON)
 	{
@@ -524,6 +533,7 @@ void CompoundCommand()
 		Command();
 	}
 	Consume(FIM);
+	printf("\tPARA\n");
 }
 // <comando>
 void Command()
@@ -599,7 +609,9 @@ void Input()
 {
 	Consume(LEIA);
 	Consume(OPEN_PARENTHESES);
+	g_varReading = 1;
 	VarList();
+	g_varReading = 0;
 	Consume(CLOSE_PARENTHESES);
 }
 // <comando_atribuicao>
@@ -750,13 +762,28 @@ void Factor()
 // <lista_variavel>
 void VarList() 
 {
+	if (g_varReading)
+	{
+		printf("\tLEIT\n");
+		printf("\tARMZ %d\n", SearchAddress(g_tokenInfo));
+	}
 	Consume(ID);
+	int varQty = 1;
 
 	while (lookahead == COMMA)
 	{
 		Consume(COMMA);
+		if (g_varReading)
+		{
+			printf("\tLEIT\n");
+			printf("\tARMZ %d\n", SearchAddress(g_tokenInfo));
+		}
 		Consume(ID);
+		varQty++;
 	}
+	if (g_varDeclaration)
+		printf("\tAMEM %d\n", varQty);
+
 }
 // <tipo>
 void Type()
@@ -806,8 +833,8 @@ int main(int argc, char** argv)
 	char* originalInputPointer = g_input;
 
 
-	printf("Conteudo da compilacao: \n");
-	// Start Recognizing
+	printf("Codigo MEPA: \n");
+	// Start Compiling
 	Compile();
 
 	// Print Symbol Table
