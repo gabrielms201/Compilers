@@ -1,15 +1,24 @@
-PROGRAM_NAME = MiniLexicalAndSintaxRecognizer
-SRC_DIR = src
-OBJ_DIR = bin
+CC = gcc
+CFLAGS = -Wall -g
+BINDIR = bin
+SRCDIR = src
 
-output: $(OBJ_DIR)/$(PROGRAM_NAME)
-	@echo "Finished Compiling"
+SRCS = $(wildcard $(SRCDIR)/*.c)
+OBJS = $(addprefix $(BINDIR)/, $(notdir $(SRCS:.c=.o)))
+TARGET = $(BINDIR)/MiniLexicalAndSintaxRecognizer
 
-$(OBJ_DIR)/$(PROGRAM_NAME): $(OBJ_DIR)/$(PROGRAM_NAME).o
-	gcc $(OBJ_DIR)/$(PROGRAM_NAME).o -o $(OBJ_DIR)/$(PROGRAM_NAME) -lc
+all: $(TARGET)
 
-$(OBJ_DIR)/$(PROGRAM_NAME).o: $(SRC_DIR)/$(PROGRAM_NAME).c
-	gcc -c $(SRC_DIR)/$(PROGRAM_NAME).c -o $(OBJ_DIR)/$(PROGRAM_NAME).o -lc
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-clean: 
-	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/$(PROGRAM_NAME)
+$(BINDIR)/%.o: $(SRCDIR)/%.c | $(BINDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+.PHONY: clean

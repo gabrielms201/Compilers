@@ -82,3 +82,5 @@ build
 
 *.exe
 *.out
+*.o
+bin
