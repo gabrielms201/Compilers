@@ -627,10 +627,12 @@ void Print()
 	Consume(ESCREVA);
 	Consume(OPEN_PARENTHESES);
 	Expression();
+	printf("\tIMPR\n");
 	while (lookahead == COMMA)
 	{
 		Consume(COMMA);
 		Expression();
+		printf("\tIMPR\n");
 	}
 	Consume(CLOSE_PARENTHESES);
 }
