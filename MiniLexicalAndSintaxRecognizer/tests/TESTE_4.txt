@@ -1,7 +1,0 @@
-algoritmo ID  ;
-    variavel numero:inteiro;
-
-inicio
-	escreva(123e+1)
-fim
-.

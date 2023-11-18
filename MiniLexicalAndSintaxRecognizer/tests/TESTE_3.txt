@@ -1,5 +1,0 @@
-algoritmo ID  ;
-    variavel maior:inteiro;
-inicio
-    escreva(teste)
-fim.

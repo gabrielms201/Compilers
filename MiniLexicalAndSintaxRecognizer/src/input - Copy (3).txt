@@ -1,0 +1,17 @@
+/*
+programa le dois numeros
+inteiros e encontra o maior
+*/
+algoritmo exemplo2;
+ variavel maior,n1,n2:inteiro;
+inicio
+escreva(n1+2,n2, maior);
+
+
+se( n1 >= n2 ) entao
+ se( n1 >= n2 ) entao
+ maior := n1;
+ se( n1 >= n2 ) entao
+ maior := n1;
+escreva(maior) // imprime o maior valor
+fim. //

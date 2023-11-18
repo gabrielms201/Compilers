@@ -1,3 +1,0 @@
-algoritmo ID  ;
-    variavel numero,:inteiro;
-.

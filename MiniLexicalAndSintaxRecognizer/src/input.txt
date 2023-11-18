@@ -1,23 +1,16 @@
 /*
-programa le dois numeros
-inteiros e encontra o maior
+programa calcula o fatorial de um numero lido
 */
-algoritmo exemplo2;
- variavel maior,maior,n1,n2:inteiro;
+algoritmo exemplo1;
+ variavel fat,num,cont:inteiro;
 inicio
-test:=+2 - 2e-23 ou 2 + 2e+22 ou falso e verdadeiro div teste ou (2+2);
-leia(n1);
-leia(n2);
-
-escreva(2*3);
-enquanto(2*3+4 div 2#3 e 3) faca
-    leia(n2);
-
-//
-se( n1 >= n2 ) entao
- se( n1 >= n2 ) entao
- maior := n1;
- se( n1 >= n2 ) entao
- maior := n1;
-escreva(maior) // imprime o maior valor
-fim. //
+leia(num);
+fat := 1;
+cont := 2;
+while( cont <= num ) faca
+inicio
+ fat := fat*cont;
+ cont := cont + 1
+fim;
+escreva(fat) // imprime o fatorial calculado
+fim.
