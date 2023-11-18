@@ -2,14 +2,19 @@
 // Gabriel Augusto Ribeiro Gomes - 32134762
 
 #include "MiniLexicalAndSintaxRecognizer.h"
+#include "LinkedList.h"
 
 // Global
 // #define LOG_DEBUG
 char* g_input = NULL;
 long g_charCount = 0;
 long g_currentLine = 1;
+unsigned int g_address = 0;
+Node* g_symbolTable = NULL;
 Token lookahead;
 const int MAX_ID_LENGTH = 15;
+
+int g_varDeclaration = 0;
 char strToken[][30] =
 {
 	"ERRO LEXICO",
@@ -198,10 +203,8 @@ TokenInfo GetToken()
 
 	if (info.Token == COMMENTARY || info.Token == MULTI_COMMENTARY)
 	{
-		printf("# Linha %d: %s\n", info.Line, strToken[info.Token]);
 		return info;
 	}
-
 
 	// First we need to check if we can fit a word
 	if (isalpha(*g_input))
@@ -303,17 +306,15 @@ TokenInfo GetToken()
 	else if (*g_input == '\0')
 		info.Token = EOS;
 
-	if (info.Token == ID)
+	if (info.Token == ID && g_varDeclaration)
 	{
-		printf("# Linha %d: %s - atributo : %s\n", info.Line, strToken[info.Token], info.ID);
-	}
-	else if (info.Token == NUMBER)
-	{
-		printf("# Linha %d: %s - valor : %f\n", info.Line, strToken[info.Token], info.Number);
-	}
-	else if (info.Token != EOS)
-	{
-		printf("# Linha %d: %s\n", info.Line, strToken[info.Token]);
+		Node* declaredTokenNode = Find(g_symbolTable, info.ID);
+		if (declaredTokenNode != NULL)
+		{
+			printf("Erro semantico: variavel %s ja declarada anteriormente na linha %d\n", info.ID, declaredTokenNode->data.Line);
+			exit(1);
+		}
+		Add(&g_symbolTable, info);
 	}
 	return info;
 
@@ -327,6 +328,8 @@ TokenInfo CreateTokenInfo(char* initBuffer, Token token, char* input)
 	strncpy(info.ID, initBuffer, input - initBuffer);
 	info.ID[input - initBuffer] = '\x0';
 	info.Number = atof(info.ID);
+	info.Address = g_address++;
+	
 	return info;
 }
 TokenInfo CheckNumber()
@@ -439,6 +442,7 @@ void Consume(Token token)
 	}
 	if (lookahead == token)
 	{
+
 		TokenInfo tokenInfo = GetToken();
 		lookahead = tokenInfo.Token;
 		// Se o proximo lookahead for comentario, apenas pulamos
@@ -473,6 +477,7 @@ void Scope()
 }
 void VarDeclaration()
 {
+	g_varDeclaration = 1;
 	Consume(VARIAVEL);
 	do 
 	{
@@ -482,6 +487,7 @@ void VarDeclaration()
 		Consume(SEMILICON);
 
 	} while (lookahead == ID);
+	g_varDeclaration = 0;
 }
 void CompoundCommand()
 {
@@ -702,6 +708,7 @@ void Factor()
 void VarList() 
 {
 	Consume(ID);
+
 	while (lookahead == COMMA)
 	{
 		Consume(COMMA);
@@ -757,6 +764,9 @@ int main(int argc, char** argv)
 
 	// Start Recognizing
 	StartAnalyzing();
+
+	printf("Lista de simbolos\n\n");
+	PrintList(&g_symbolTable);
 
 
 	free(originalInputPointer);

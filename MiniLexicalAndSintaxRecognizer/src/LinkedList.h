@@ -4,9 +4,10 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "MiniLexicalAndSintaxRecognizer.h"
 
 
-typedef int LL_TYPE;
+typedef TokenInfo LL_TYPE;
 typedef struct 
 {
     LL_TYPE data;
@@ -14,9 +15,9 @@ typedef struct
 } Node;
 
 Node* CreateNode(LL_TYPE data);
-Node* Find(Node* head, LL_TYPE  target);
+Node* Find(Node* head, char target[20]);
 void Add(Node** head, LL_TYPE data);
-void Remove(Node** head, LL_TYPE target);
+void Remove(Node** head, char target[20]);
 void PrintList(Node** head);
 void FreeList(Node** head);
 

@@ -10,18 +10,17 @@ Node* CreateNode(LL_TYPE data)
     return newNode;
 }
 
-Node* Find(Node* head, LL_TYPE  target)
+Node* Find(Node* head, char target[20])
 {
     Node* current = head;
     while (current != NULL)
     {
-        if (current->data == target)
+        if (strcmp(current->data.ID, target) == 0)
         {
             return current;
         }
         current = current->next;
     }
-    printf("LINKED_LIST: Can't find target element");
     return NULL;
 }
 
@@ -43,12 +42,12 @@ void Add(Node** head, LL_TYPE data)
     }
 }
 
-void Remove(Node** head, LL_TYPE target)
+void Remove(Node** head, char target[20])
 {
     Node* current = *head;
     Node* prev = NULL;
 
-    while (current != NULL && current->data != target)
+    while (current != NULL && (strcmp(current->data.ID, target) != 0))
     {
         prev = current;
         current = current->next;
@@ -73,7 +72,7 @@ void PrintList(Node** head)
     Node* current = *head;
     while (current != NULL)
     {
-        printf("%d ", current->data);
+        printf("ID: %s | Endereco: %d \n", current->data.ID, current->data.Address);
         current = current->next;
     }
     printf("\n");

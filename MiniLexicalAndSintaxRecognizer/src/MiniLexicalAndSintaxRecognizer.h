@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <ctype.h> 
 #include <string.h>
-#include "LinkedList.h"
 
 // Utils
 void Error();
@@ -66,7 +65,9 @@ typedef struct
     int Line;
     float Number;
     char ID[20];
+    int Address;
 } TokenInfo;
+
 
 typedef struct 
 {
@@ -80,7 +81,7 @@ int ShouldSkipOneChar();
 TokenInfo NextTerminal();
 
 TokenInfo GetToken();
-TokenInfo CheckReservedWord();
+TokenInfo CheckReservedWord(char* originalId);
 TokenInfo CheckID();
 TokenInfo CheckNumber();
 TokenInfo CreateTokenInfo(char* initBuffer, Token token, char* input);
