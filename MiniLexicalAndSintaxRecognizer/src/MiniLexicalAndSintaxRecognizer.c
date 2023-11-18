@@ -577,16 +577,34 @@ void Command()
 // <comando_se>
 void If()
 {
+	int l1 = NextLabel();
+	int l2 = NextLabel();
 	Consume(SE);
 	Consume(OPEN_PARENTHESES);
 	Expression();
 	Consume(CLOSE_PARENTHESES);
 	Consume(ENTAO);
+	printf("\tDSVF L%d\n", l2);
+	printf("\tDSVS L%d\n", l1); // Desviar l2 apenas se tiver um senao
+	printf("L%d:\tNADA\n", l1);
 	Command();
 	if (lookahead == SENAO)
-	{
+	{ 
+		// If we have an else clause, we need to create a new label (L3) and make the L1 jump to it
+		int l3 = NextLabel();
+		printf("\tDSVS L%d\n", l3);
+		// Now, the L2 is our else clause
+		printf("L%d:\tNADA\n", l2);
 		Consume(SENAO);
 		Command();
+		printf("\tDSVS L%d\n", l3);
+		printf("L%d:\tNADA\n", l3);
+	}
+	else 
+	{
+		// If we don't have an else clause, the L2 is the main flux, and L1 will jump there
+		printf("\tDSVS L%d\n", l2);
+		printf("L%d:\tNADA\n", l2);
 	}
 }
 // <comando_atribuicao>

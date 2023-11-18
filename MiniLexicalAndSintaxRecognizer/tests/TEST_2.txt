@@ -4,8 +4,6 @@ inicio
 leia(n1);
 leia(n2);
 se( n1 > n2 ) entao
- maior := n1
-senao
- maior := n2;
+ maior := n1;
 escreva(maior) // imprime o maior valor
 fim.
